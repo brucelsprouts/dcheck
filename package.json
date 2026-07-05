@@ -1,0 +1,37 @@
+{
+  "name": "netwatch",
+  "version": "1.0.0",
+  "description": "WiFi stability monitor - system tray app",
+  "author": "NETWATCH",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --win",
+    "build:dir": "electron-builder --win --dir"
+  },
+  "devDependencies": {
+    "electron": "^35.0.0",
+    "electron-builder": "^26.0.0"
+  },
+  "build": {
+    "appId": "com.netwatch.app",
+    "productName": "NETWATCH",
+    "win": {
+      "target": "nsis",
+      "icon": "icons/logo.png"
+    },
+    "nsis": {
+      "oneClick": true,
+      "allowToChangeInstallationDirectory": false
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "index.html",
+      "index.css",
+      "dashboard.js",
+      "icons/**/*"
+    ],
+    "extraResources": []
+  }
+}

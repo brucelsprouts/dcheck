@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NETWATCH</title>
+  <meta name="color-scheme" content="dark">
+  <link rel="stylesheet" href="index.css">
+</head>
+<body>
+
+  <!-- ═══ Title Bar (custom, frameless) ═══ -->
+  <div class="titlebar" id="titlebar">
+    <div class="titlebar-left">
+      <img src="icons/icon16.png" class="titlebar-icon" alt="">
+      <span class="titlebar-brand">NETWATCH</span>
+      <span class="titlebar-status" id="titlebar-status">
+        <span class="status-dot" id="status-dot"></span>
+        <span id="status-text">CONNECTING</span>
+      </span>
+    </div>
+    <button class="titlebar-close" id="btn-close" aria-label="Close">✕</button>
+  </div>
+
+  <!-- ═══ Stats Row ═══ -->
+  <div class="stats-row" id="stats-row">
+    <div class="stat">
+      <span class="stat-label">PING</span>
+      <span class="stat-value" id="stat-ping">--</span>
+    </div>
+    <div class="stat">
+      <span class="stat-label">DROPS</span>
+      <span class="stat-value stat-alert" id="stat-drops">0</span>
+    </div>
+    <div class="stat">
+      <span class="stat-label">UPTIME</span>
+      <span class="stat-value" id="stat-uptime">--%</span>
+    </div>
+    <div class="stat">
+      <span class="stat-label">TOTAL</span>
+      <span class="stat-value" id="stat-total">0</span>
+    </div>
+  </div>
+
+  <!-- ═══ Filter Row ═══ -->
+  <div class="filter-row" id="filter-row">
+    <button class="filter-btn" data-range="3600">1H</button>
+    <button class="filter-btn" data-range="21600">6H</button>
+    <button class="filter-btn active" data-range="86400">24H</button>
+    <button class="filter-btn" data-range="0">ALL</button>
+  </div>
+
+  <!-- ═══ Graph ═══ -->
+  <div class="graph-wrap" id="graph-wrap">
+    <canvas id="graph"></canvas>
+  </div>
+
+  <!-- ═══ Event Log ═══ -->
+  <div class="event-log" id="event-log">
+    <div class="event-log-header">
+      <span class="event-log-title">EVENTS</span>
+      <span class="event-log-count" id="event-count">0</span>
+    </div>
+    <div class="event-log-entries" id="event-entries">
+      <div class="event-empty">No disconnect events</div>
+    </div>
+  </div>
+
+  <script src="dashboard.js"></script>
+</body>
+</html>
