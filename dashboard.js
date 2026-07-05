@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════
-//  NETWATCH — Dashboard Renderer
+//  dcheck — Dashboard Renderer
 //  Lightweight canvas graph + IPC data handling
 // ═══════════════════════════════════════════════════════════
 
@@ -32,7 +32,55 @@
 
     // Close button
     $('btn-close').addEventListener('click', () => {
-      window.netwatch.closeWindow();
+      window.dcheck.closeWindow();
+    });
+
+    // Settings panel toggles and action handlers
+    const settingsOverlay = $('settings-overlay');
+
+    $('btn-settings').addEventListener('click', () => {
+      window.dcheck.getSettings().then(cfg => {
+        $('setting-startup').checked = cfg.openAtLogin;
+        $('setting-target').value = cfg.pingTarget;
+        $('setting-interval').value = cfg.pingIntervalSec;
+        $('setting-latency').value = cfg.highLatencyMs;
+        settingsOverlay.classList.add('active');
+      });
+    });
+
+    $('btn-cancel-settings').addEventListener('click', () => {
+      settingsOverlay.classList.remove('active');
+    });
+
+    $('btn-save-settings').addEventListener('click', () => {
+      const openAtLogin = $('setting-startup').checked;
+      const pingTarget = $('setting-target').value.trim();
+      const pingIntervalSec = parseInt($('setting-interval').value, 10);
+      const highLatencyMs = parseInt($('setting-latency').value, 10);
+
+      if (!pingTarget) {
+        alert('Ping target cannot be empty.');
+        return;
+      }
+      if (isNaN(pingIntervalSec) || pingIntervalSec < 1 || pingIntervalSec > 60) {
+        alert('Interval must be between 1 and 60 seconds.');
+        return;
+      }
+      if (isNaN(highLatencyMs) || highLatencyMs < 10 || highLatencyMs > 2000) {
+        alert('Latency threshold must be between 10 and 2000 ms.');
+        return;
+      }
+
+      window.dcheck.saveSettings({
+        openAtLogin,
+        pingTarget,
+        pingIntervalSec,
+        highLatencyMs
+      }).then(res => {
+        if (res.success) {
+          settingsOverlay.classList.remove('active');
+        }
+      });
     });
 
     // Filter buttons
@@ -47,7 +95,7 @@
     });
 
     // IPC: receive full data when window opens
-    window.netwatch.onFullData((data) => {
+    window.dcheck.onFullData((data) => {
       allData = data;
       applyFilter();
       updateStats();
@@ -56,7 +104,7 @@
     });
 
     // IPC: receive live ping updates
-    window.netwatch.onPingUpdate((entry) => {
+    window.dcheck.onPingUpdate((entry) => {
       allData.push(entry);
       applyFilter();
       updateStats();
@@ -65,7 +113,7 @@
     });
 
     // Request initial data
-    window.netwatch.getHistory(0).then(data => {
+    window.dcheck.getHistory(0).then(data => {
       allData = data;
       applyFilter();
       updateStats();
@@ -87,8 +135,8 @@
       filteredData = allData;
       return;
     }
-    const cutoff = new Date(Date.now() - activeRange * 1000).toISOString().slice(0, 19);
-    filteredData = allData.filter(d => d.ts >= cutoff);
+    const cutoffMs = Date.now() - activeRange * 1000;
+    filteredData = allData.filter(d => parseTS(d.ts) >= cutoffMs);
   }
 
 
@@ -97,7 +145,7 @@
   // ══════════════════════════════════════
 
   function updateStats() {
-    window.netwatch.getStats().then(stats => {
+    window.dcheck.getStats().then(stats => {
       // Current ping
       const pingEl = $('stat-ping');
       if (stats.last) {
@@ -389,11 +437,14 @@
   // ══════════════════════════════════════
 
   function parseTS(ts) {
+    if (typeof ts === 'string' && !ts.endsWith('Z') && !ts.includes('+') && !ts.includes('-') && ts.length === 19) {
+      return new Date(ts + 'Z').getTime();
+    }
     return new Date(ts).getTime();
   }
 
   function formatTime(ts) {
-    const d = new Date(ts);
+    const d = new Date(parseTS(ts));
     return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
   }
 

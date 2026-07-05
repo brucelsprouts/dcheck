@@ -1,11 +1,11 @@
 // ═══════════════════════════════════════════════════════════
-//  NETWATCH — Preload Script
+//  dcheck — Preload Script
 //  Secure IPC bridge between main process and renderer
 // ═══════════════════════════════════════════════════════════
 
 const { contextBridge, ipcRenderer } = require('electron');
 
-contextBridge.exposeInMainWorld('netwatch', {
+contextBridge.exposeInMainWorld('dcheck', {
   // Request historical ping data (filtered by range in seconds, 0 = all)
   getHistory: (rangeSec) => ipcRenderer.invoke('get-history', rangeSec),
 
@@ -24,4 +24,8 @@ contextBridge.exposeInMainWorld('netwatch', {
 
   // Close/hide the window
   closeWindow: () => ipcRenderer.send('close-window'),
+
+  // Get and Save settings configuration
+  getSettings: () => ipcRenderer.invoke('get-settings'),
+  saveSettings: (settings) => ipcRenderer.invoke('save-settings', settings),
 });

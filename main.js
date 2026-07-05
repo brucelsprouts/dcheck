@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════
-//  NETWATCH — Electron Main Process
+//  dcheck — Electron Main Process
 //  System tray app with embedded ping logger
 // ═══════════════════════════════════════════════════════════
 
@@ -14,15 +14,52 @@ let mainWindow = null;
 let pingInterval = null;
 
 // ── Config ──
-const PING_TARGET = '8.8.8.8';
-const PING_INTERVAL_MS = 5000;
-const HIGH_LATENCY_MS = 100;
+const SETTINGS_FILE = path.join(app.getPath('userData'), 'settings.json');
 const LOG_FILE = path.join(app.getPath('userData'), 'ping_log.jsonl');
 const WINDOW_WIDTH = 420;
-const WINDOW_HEIGHT = 540;
+const WINDOW_HEIGHT = 640;
+const WINDOW_MIN_WIDTH = 360;
+const WINDOW_MIN_HEIGHT = 400;
+
+let config = {
+  openAtLogin: false,
+  pingTarget: '8.8.8.8',
+  pingIntervalSec: 5,
+  highLatencyMs: 100
+};
 
 // ── Ping History (in-memory for current session) ──
 let pingHistory = [];
+
+// ── Settings Manager ──
+function loadSettings() {
+  try {
+    if (fs.existsSync(SETTINGS_FILE)) {
+      const data = JSON.parse(fs.readFileSync(SETTINGS_FILE, 'utf-8'));
+      config = { ...config, ...data };
+    }
+  } catch (e) {
+    // Fail silently, use defaults
+  }
+}
+
+function saveSettings(newSettings) {
+  try {
+    config = { ...config, ...newSettings };
+    fs.writeFileSync(SETTINGS_FILE, JSON.stringify(config, null, 2), 'utf-8');
+    
+    // Apply startup setting
+    app.setLoginItemSettings({
+      openAtLogin: config.openAtLogin,
+      path: app.getPath('exe')
+    });
+    
+    // Restart logger to apply changes
+    startLogger();
+  } catch (e) {
+    // Fail silently
+  }
+}
 
 // ═══════════════════════════════════════
 //  APP LIFECYCLE
@@ -41,6 +78,19 @@ if (!gotLock) {
 }
 
 app.whenReady().then(() => {
+  // Load settings config
+  loadSettings();
+
+  // Apply startup launch preference
+  try {
+    app.setLoginItemSettings({
+      openAtLogin: config.openAtLogin,
+      path: app.getPath('exe')
+    });
+  } catch (e) {
+    // Silent fail if execution path issues
+  }
+
   // Load existing log data
   loadHistory();
 
@@ -70,7 +120,7 @@ function createTray() {
   const icon = nativeImage.createFromPath(iconPath);
 
   tray = new Tray(icon);
-  tray.setToolTip('NETWATCH — WiFi Monitor');
+  tray.setToolTip('dcheck — WiFi Monitor');
 
   const contextMenu = Menu.buildFromTemplate([
     {
@@ -108,10 +158,12 @@ function createWindow() {
   mainWindow = new BrowserWindow({
     width: WINDOW_WIDTH,
     height: WINDOW_HEIGHT,
+    minWidth: WINDOW_MIN_WIDTH,
+    minHeight: WINDOW_MIN_HEIGHT,
     x: screenW - WINDOW_WIDTH - 12,
     y: screenH - WINDOW_HEIGHT - 12,
     frame: false,
-    resizable: false,
+    resizable: true,
     skipTaskbar: true,
     show: false,
     transparent: false,
@@ -166,17 +218,21 @@ function showWindow() {
 // ═══════════════════════════════════════
 
 function startLogger() {
+  if (pingInterval) {
+    clearInterval(pingInterval);
+  }
   // Ping immediately, then every interval
   doPing();
-  pingInterval = setInterval(doPing, PING_INTERVAL_MS);
+  pingInterval = setInterval(doPing, config.pingIntervalSec * 1000);
 }
 
 function doPing() {
   const start = Date.now();
+  const target = config.pingTarget || '8.8.8.8';
 
   // Windows ping command: -n 1 = one ping, -w 2000 = 2s timeout
-  exec(`ping -n 1 -w 2000 ${PING_TARGET}`, (err, stdout) => {
-    const ts = new Date().toISOString().slice(0, 19);
+  exec(`ping -n 1 -w 2000 ${target}`, (err, stdout) => {
+    const ts = new Date().toISOString();
     let ms = -1;
     let status = 'TIMEOUT';
 
@@ -185,7 +241,7 @@ function doPing() {
       const match = stdout.match(/time[=<](\d+)ms/i);
       if (match) {
         ms = parseInt(match[1], 10);
-        status = ms >= HIGH_LATENCY_MS ? 'HIGH_LATENCY' : 'OK';
+        status = ms >= config.highLatencyMs ? 'HIGH_LATENCY' : 'OK';
       }
     }
 
@@ -225,7 +281,7 @@ function updateTrayTooltip(entry) {
       ? `${entry.ms}ms (HIGH)`
       : `${entry.ms}ms`;
 
-  tray.setToolTip(`NETWATCH | ${statusText} | Uptime: ${uptime}% | Drops: ${drops}`);
+  tray.setToolTip(`dcheck | ${statusText} | Uptime: ${uptime}% | Drops: ${drops}`);
 }
 
 
@@ -256,6 +312,15 @@ ipcMain.on('close-window', () => {
   if (mainWindow) mainWindow.hide();
 });
 
+ipcMain.handle('get-settings', () => {
+  return config;
+});
+
+ipcMain.handle('save-settings', (event, newSettings) => {
+  saveSettings(newSettings);
+  return { success: true };
+});
+
 function sendDataToRenderer() {
   if (mainWindow && mainWindow.webContents) {
     mainWindow.webContents.send('full-data', pingHistory);
@@ -278,9 +343,12 @@ function loadHistory() {
       }).filter(Boolean);
 
       // Keep only last 7 days of data to prevent unbounded growth
-      const cutoff = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19);
+      const cutoffMs = Date.now() - 7 * 24 * 60 * 60 * 1000;
       const before = pingHistory.length;
-      pingHistory = pingHistory.filter(d => d.ts >= cutoff);
+      pingHistory = pingHistory.filter(d => {
+        const timeMs = new Date(d.ts.endsWith('Z') || d.ts.includes('+') || d.ts.includes('-') ? d.ts : d.ts + 'Z').getTime();
+        return timeMs >= cutoffMs;
+      });
 
       // Rewrite file if we pruned entries
       if (pingHistory.length < before) {

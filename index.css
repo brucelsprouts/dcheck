@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════
-   NETWATCH — Minimal Dark Theme
+   dcheck — Minimal Dark Theme
    Lightweight system tray popup — no CRT effects
    ═══════════════════════════════════════════════════════════ */
 
@@ -40,6 +40,7 @@ html, body {
   line-height: 1.4;
   -webkit-font-smoothing: antialiased;
   user-select: none;
+  min-height: 0;
 }
 
 button {
@@ -121,8 +122,30 @@ button {
   50%      { opacity: 0.3; }
 }
 
-.titlebar-close {
+.titlebar-actions {
+  display: flex;
+  gap: 4px;
   -webkit-app-region: no-drag;
+}
+
+.titlebar-btn {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  color: var(--muted);
+  border-radius: 2px;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.titlebar-btn:hover {
+  background: var(--border);
+  color: var(--bright);
+}
+
+.titlebar-close {
   width: 24px;
   height: 24px;
   display: flex;
@@ -234,9 +257,11 @@ button {
 
 .event-log {
   border-top: 1px solid var(--border);
-  max-height: 120px;
+  flex: 1;
+  min-height: 120px;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 .event-log-header {
@@ -325,4 +350,172 @@ button {
 body {
   display: flex;
   flex-direction: column;
+}
+
+
+/* ═══ Settings Overlay ═══ */
+
+.settings-overlay {
+  position: absolute;
+  top: 32px;
+  left: 0;
+  width: 100%;
+  height: calc(100% - 32px);
+  background: rgba(10, 10, 10, 0.96);
+  backdrop-filter: blur(4px);
+  border-top: 1px solid var(--border);
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  transform: translateY(100%);
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  padding: 20px;
+}
+
+.settings-overlay.active {
+  transform: translateY(0);
+}
+
+.settings-header {
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 8px;
+}
+
+.settings-title {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  color: var(--bright);
+}
+
+.settings-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow-y: auto;
+}
+
+.setting-group {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.setting-label {
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: var(--text);
+  font-weight: 700;
+}
+
+/* Custom cyber-input */
+.setting-input {
+  width: 150px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--white);
+  font-family: var(--font);
+  font-size: 11px;
+  padding: 6px 10px;
+  border-radius: 2px;
+  text-align: right;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.setting-input:focus {
+  outline: none;
+  border-color: var(--green);
+  box-shadow: 0 0 6px var(--green-dim);
+}
+
+/* Switch Styles (Run on Startup) */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 36px;
+  height: 20px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--dim);
+  transition: .2s;
+  border-radius: 2px;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 14px;
+  width: 14px;
+  left: 3px;
+  bottom: 3px;
+  background-color: var(--text);
+  transition: .2s;
+  border-radius: 1px;
+}
+
+input:checked + .slider {
+  background-color: var(--green-dim);
+  border: 1px solid var(--green);
+}
+
+input:checked + .slider:before {
+  background-color: var(--green);
+  transform: translateX(16px);
+}
+
+/* Footer & Buttons */
+.settings-footer {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+  border-top: 1px solid var(--border);
+  padding-top: 12px;
+}
+
+.settings-btn {
+  flex: 1;
+  font-size: 11px;
+  letter-spacing: 0.15em;
+  padding: 8px 0;
+  text-align: center;
+  border-radius: 2px;
+  transition: all 0.15s ease;
+}
+
+.save-btn {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--green);
+}
+
+.save-btn:hover {
+  background: var(--green-dim);
+  border-color: var(--green);
+}
+
+.cancel-btn {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--muted);
+}
+
+.cancel-btn:hover {
+  background: var(--border);
+  color: var(--bright);
 }

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>NETWATCH</title>
+  <title>dcheck</title>
   <meta name="color-scheme" content="dark">
   <link rel="stylesheet" href="index.css">
 </head>
@@ -13,13 +13,16 @@
   <div class="titlebar" id="titlebar">
     <div class="titlebar-left">
       <img src="icons/icon16.png" class="titlebar-icon" alt="">
-      <span class="titlebar-brand">NETWATCH</span>
+      <span class="titlebar-brand">dcheck</span>
       <span class="titlebar-status" id="titlebar-status">
         <span class="status-dot" id="status-dot"></span>
         <span id="status-text">CONNECTING</span>
       </span>
     </div>
-    <button class="titlebar-close" id="btn-close" aria-label="Close">✕</button>
+    <div class="titlebar-actions">
+      <button class="titlebar-btn" id="btn-settings" aria-label="Settings">⚙</button>
+      <button class="titlebar-close" id="btn-close" aria-label="Close">✕</button>
+    </div>
   </div>
 
   <!-- ═══ Stats Row ═══ -->
@@ -63,6 +66,38 @@
     </div>
     <div class="event-log-entries" id="event-entries">
       <div class="event-empty">No disconnect events</div>
+    </div>
+  </div>
+  
+  <!-- ═══ Settings Overlay ═══ -->
+  <div class="settings-overlay" id="settings-overlay">
+    <div class="settings-header">
+      <span class="settings-title">SETTINGS</span>
+    </div>
+    <div class="settings-body">
+      <div class="setting-group">
+        <label class="setting-label" for="setting-startup">RUN ON STARTUP</label>
+        <label class="switch">
+          <input type="checkbox" id="setting-startup">
+          <span class="slider"></span>
+        </label>
+      </div>
+      <div class="setting-group">
+        <label class="setting-label" for="setting-target">PING TARGET</label>
+        <input type="text" id="setting-target" class="setting-input" placeholder="8.8.8.8">
+      </div>
+      <div class="setting-group">
+        <label class="setting-label" for="setting-interval">PING INTERVAL (SEC)</label>
+        <input type="number" id="setting-interval" class="setting-input" min="1" max="60" placeholder="5">
+      </div>
+      <div class="setting-group">
+        <label class="setting-label" for="setting-latency">LATENCY THRESHOLD (MS)</label>
+        <input type="number" id="setting-latency" class="setting-input" min="10" max="2000" placeholder="100">
+      </div>
+    </div>
+    <div class="settings-footer">
+      <button class="settings-btn save-btn" id="btn-save-settings">[ SAVE ]</button>
+      <button class="settings-btn cancel-btn" id="btn-cancel-settings">[ CANCEL ]</button>
     </div>
   </div>
 

@@ -1,8 +1,8 @@
 {
-  "name": "netwatch",
+  "name": "dcheck",
   "version": "1.0.0",
   "description": "WiFi stability monitor - system tray app",
-  "author": "NETWATCH",
+  "author": "dcheck",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
@@ -14,8 +14,8 @@
     "electron-builder": "^26.0.0"
   },
   "build": {
-    "appId": "com.netwatch.app",
-    "productName": "NETWATCH",
+    "appId": "com.dcheck.app",
+    "productName": "dcheck",
     "win": {
       "target": "nsis",
       "icon": "icons/logo.png"
