@@ -321,6 +321,18 @@ ipcMain.handle('save-settings', (event, newSettings) => {
   return { success: true };
 });
 
+ipcMain.handle('clear-history', () => {
+  pingHistory = [];
+  try {
+    if (fs.existsSync(LOG_FILE)) {
+      fs.writeFileSync(LOG_FILE, '', 'utf-8');
+    }
+    return { success: true };
+  } catch (e) {
+    return { success: false, error: e.message };
+  }
+});
+
 function sendDataToRenderer() {
   if (mainWindow && mainWindow.webContents) {
     mainWindow.webContents.send('full-data', pingHistory);

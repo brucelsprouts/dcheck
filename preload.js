@@ -28,4 +28,7 @@ contextBridge.exposeInMainWorld('dcheck', {
   // Get and Save settings configuration
   getSettings: () => ipcRenderer.invoke('get-settings'),
   saveSettings: (settings) => ipcRenderer.invoke('save-settings', settings),
+
+  // Clear ping log history file
+  clearHistory: () => ipcRenderer.invoke('clear-history'),
 });

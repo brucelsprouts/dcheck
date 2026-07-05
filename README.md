@@ -1,104 +1,40 @@
 # dcheck
 
-A sleek, lightweight Windows system tray application that monitors network latency and stability. **dcheck** (Disconnect Check) runs silently in the background, executing pings, and visualizes network dropouts and high latency spikes via a custom HTML5 canvas dashboard. 
+I moved back home from uni and the wifi was really bad and kept disconnecting, so for fun I was curious to see how often I disconnected. Here it is.
 
-Designed to be unobtrusive, performant, and visual-first, it is perfect for debugging spotty WiFi connections or ISP dropouts.
-
----
-
-## Key Features
-
-- **System Tray Native**: Minimizes to the Windows system tray with a dynamic tooltip displaying real-time ping stats, uptime, and disconnects. Includes single-instance locking.
-- **Real-time Canvas Graph**: High-performance rendering of ping responses, connection timeouts (marked in glowing red vertical bars), and high-latency alerts (marked in amber).
-- **Customizable Configuration**:
-  - **Launch on Startup**: Enable or disable automatic startup with Windows.
-  - **Ping Target**: Target any IP address or domain (defaults to `8.8.8.8`).
-  - **Ping Interval**: Adjust checking frequency dynamically (1s to 60s).
-  - **Latency Warning Threshold**: Highlight latency spikes based on your custom threshold.
-- **Filterable History**: Switch between `1H`, `6H`, `24H`, or `ALL` log filters instantly.
-- **No-Database Persistence**: Saves logs locally using a zero-overhead JSON Lines (`.jsonl`) file in the application's user directory. Rotates/prunes entries older than 7 days automatically.
-- **Premium Aesthetics**: Monospaced typography, dark glassmorphism styling, and responsive layout scaling.
+**dcheck** (Disconnect Check) is a sleek, lightweight Windows system tray application that monitors your network latency and stability, logging dropouts and rendering them on a live canvas graph.
 
 ---
 
-## Technical Stack & Architecture
+## Features
 
-- **Core Framework**: [Electron](https://www.electronjs.org/) (Main process & context-isolated Renderer process)
-- **Frontend**: Vanilla HTML5, Canvas API, and CSS Custom Properties (Variables)
-- **Backend/System APIs**: Node.js `child_process` (for OS-level ICMP pings) and `fs` (for JSON Lines logging)
-- **Security**: Strict `contextIsolation: true` with a secure Preload Bridge (`preload.js`), exposing only explicit IPC channels.
-
-```
-┌────────────────────────────────────────────────────────┐
-│                    Electron Main                       │
-│    (Ping loop, settings.json, ping_log.jsonl, tray)    │
-└───────────────▲────────────────────────▲───────────────┘
-                │ IPC                    │ IPC
-┌───────────────▼────────────────────────▼───────────────┐
-│                    Preload Bridge                      │
-│                  (Secure API Exposer)                  │
-└───────────────▲────────────────────────▲───────────────┘
-                │ Safe Call              │ Safe Call
-┌───────────────▼────────────────────────▼───────────────┐
-│                   Renderer Process                     │
-│        (HTML5 Canvas, Dashboard UI, CSS Theme)         │
-└────────────────────────────────────────────────────────┘
-```
+- **System Tray Native**: Runs silently in the background. Left-click the tray icon to open the dashboard.
+- **Real-Time Graph**: Visualizes ping times, timeout dropouts (marked in red), and high latency segments (marked in amber).
+- **Settings Panel**: Click the gear (`⚙`) to:
+  - Toggle **Run on Startup**
+  - Set a custom **Ping Target** (e.g. `1.1.1.1` or `8.8.8.8`)
+  - Adjust **Ping Interval** and **Latency Threshold**
+  - **Clear Logs** if you want to wipe the history.
+- **Zero-DB Logging**: Saves logs locally to a simple `.jsonl` file in your AppData directory.
 
 ---
 
-## Getting Started
+## Quick Start
 
-### Prerequisites
-
-- [Node.js](https://nodejs.org/) (v18 or higher recommended)
-- Windows OS (designed for native Windows `ping` utility outputs)
-
-### Setup & Run Locally
-
-1. **Clone the repository**:
+1. **Clone & install**:
    ```bash
    git clone https://github.com/brucelsprouts/dcheck.git
    cd dcheck
-   ```
-
-2. **Install dependencies**:
-   ```bash
    npm install
    ```
 
-3. **Start the application**:
+2. **Run it**:
    ```bash
    npm start
    ```
-   *The application will initialize, start pinging in the background, and display the tray icon. Left-click the tray icon to open the dashboard.*
 
-### Packaging the Application
-
-To build a standalone production installer (`.exe`) using `electron-builder`:
-
-```bash
-npm run build
-```
-The compiled installer will be outputted to the `dist/` directory.
-
----
-
-## Settings Customization
-
-Click the **gear icon (`⚙`)** in the window's top right corner to open the Settings panel:
-
-1. **Run on Startup**: Automatically register the app in the Windows startup registry.
-2. **Ping Target**: Set to `8.8.8.8` (Google DNS), `1.1.1.1` (Cloudflare), or any local gateway IP.
-3. **Ping Interval**: Frequencies between 1 and 60 seconds.
-4. **Latency Threshold**: Highlight packets exceeding your benchmark (e.g., `100ms`).
-
----
-
-## Local Logs Location
-
-Logs are stored locally without database dependencies. You can find them under:
-`%APPDATA%\dcheck\ping_log.jsonl`
-
-Settings are persisted in:
-`%APPDATA%\dcheck\settings.json`
+3. **Build the installer**:
+   ```bash
+   npm run build
+   ```
+   *Creates a standalone installer setup `.exe` in the `dist/` directory.*

@@ -83,6 +83,23 @@
       });
     });
 
+    $('btn-clear-logs').addEventListener('click', () => {
+      if (confirm('Are you sure you want to clear all ping log history? This cannot be undone.')) {
+        window.dcheck.clearHistory().then(res => {
+          if (res.success) {
+            allData = [];
+            applyFilter();
+            updateStats();
+            updateEventLog();
+            render();
+            settingsOverlay.classList.remove('active');
+          } else {
+            alert('Failed to clear logs: ' + res.error);
+          }
+        });
+      }
+    });
+
     // Filter buttons
     document.querySelectorAll('.filter-btn').forEach(btn => {
       btn.addEventListener('click', () => {

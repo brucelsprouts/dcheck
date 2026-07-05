@@ -519,3 +519,23 @@ input:checked + .slider:before {
   background: var(--border);
   color: var(--bright);
 }
+
+.database-group {
+  margin-top: 8px;
+  border-top: 1px dashed var(--border);
+  padding-top: 16px;
+}
+
+.danger-btn {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--red);
+  font-size: 10px;
+  padding: 4px 10px;
+  flex: none;
+}
+
+.danger-btn:hover {
+  background: var(--red-dim);
+  border-color: var(--red);
+}
