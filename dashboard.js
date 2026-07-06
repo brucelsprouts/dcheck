@@ -290,49 +290,57 @@
   // ══════════════════════════════════════
 
   function updateStats() {
-    window.dcheck.getStats().then(stats => {
-      // Current ping
-      const pingEl = $('stat-ping');
-      if (stats.last) {
-        if (stats.last.status === 'TIMEOUT') {
-          pingEl.textContent = 'DOWN';
-          pingEl.className = 'stat-value stat-down';
-        } else if (stats.last.status === 'HIGH_LATENCY') {
-          pingEl.textContent = stats.last.ms + 'ms';
-          pingEl.className = 'stat-value stat-warn';
-        } else {
-          pingEl.textContent = stats.last.ms + 'ms';
-          pingEl.className = 'stat-value stat-ok';
-        }
+    // Top bar stats are based on filteredData
+    const total = filteredData.length;
+    let drops = 0;
+    let sumMs = 0;
+    let validPings = 0;
+
+    for (const d of filteredData) {
+      if (d.status === 'TIMEOUT') {
+        drops++;
+      } else {
+        sumMs += d.ms;
+        validPings++;
       }
+    }
 
-      // Drops
-      const dropsEl = $('stat-drops');
-      dropsEl.textContent = stats.drops;
-      dropsEl.className = stats.drops > 0 ? 'stat-value stat-alert' : 'stat-value stat-ok';
+    const avgPing = validPings > 0 ? Math.round(sumMs / validPings) : 0;
+    const uptime = total > 0 ? (((total - drops) / total) * 100).toFixed(2) : '--';
 
-      // Uptime
-      $('stat-uptime').textContent = stats.uptime + '%';
+    // Update UI
+    const pingEl = $('stat-ping');
+    if (total === 0) {
+      pingEl.textContent = '--';
+      pingEl.className = 'stat-value';
+    } else {
+      pingEl.textContent = avgPing + 'ms';
+      pingEl.className = avgPing >= 100 ? 'stat-value stat-warn' : 'stat-value stat-ok';
+    }
 
-      // Total
-      $('stat-total').textContent = stats.total.toLocaleString();
+    const dropsEl = $('stat-drops');
+    dropsEl.textContent = drops;
+    dropsEl.className = drops > 0 ? 'stat-value stat-alert' : 'stat-value stat-ok';
 
-      // Status dot + text
-      const dot = $('status-dot');
-      const text = $('status-text');
-      if (stats.last) {
-        if (stats.last.status === 'TIMEOUT') {
-          dot.className = 'status-dot offline';
-          text.textContent = 'OFFLINE';
-        } else if (stats.last.status === 'HIGH_LATENCY') {
-          dot.className = 'status-dot degraded';
-          text.textContent = 'DEGRADED';
-        } else {
-          dot.className = 'status-dot online';
-          text.textContent = 'ONLINE';
-        }
+    $('stat-uptime').textContent = uptime === '--' ? '--%' : uptime + '%';
+    $('stat-total').textContent = total.toLocaleString();
+
+    // App live status (top left dot) always based on latest actual data
+    const last = allData.length > 0 ? allData[allData.length - 1] : null;
+    const dot = $('status-dot');
+    const text = $('status-text');
+    if (last) {
+      if (last.status === 'TIMEOUT') {
+        dot.className = 'status-dot offline';
+        text.textContent = 'OFFLINE';
+      } else if (last.status === 'HIGH_LATENCY') {
+        dot.className = 'status-dot degraded';
+        text.textContent = 'DEGRADED';
+      } else {
+        dot.className = 'status-dot online';
+        text.textContent = 'ONLINE';
       }
-    });
+    }
   }
 
 
@@ -341,7 +349,7 @@
   // ══════════════════════════════════════
 
   function updateEventLog() {
-    const events = allData.filter(d => d.status === 'TIMEOUT' || d.status === 'HIGH_LATENCY');
+    const events = filteredData.filter(d => d.status === 'TIMEOUT' || d.status === 'HIGH_LATENCY');
     const container = $('event-entries');
     const countEl = $('event-count');
 
@@ -607,16 +615,14 @@
         ctx.stroke();
         ctx.setLineDash([]);
 
-        // Duration label (rotated vertically if enough height)
+        // Duration label
         const durationStr = formatDuration(gapDurationMs);
         ctx.save();
-        ctx.translate(gapX + GAP_SEPARATOR_W / 2, pY + pH / 2);
-        ctx.rotate(-Math.PI / 2);
-        ctx.fillStyle = '#444444';
-        ctx.font = '7px "Share Tech Mono", monospace';
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '9px "Share Tech Mono", monospace';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText(durationStr, 0, 0);
+        ctx.fillText(durationStr, gapX + GAP_SEPARATOR_W / 2, pY + pH - 15);
         ctx.restore();
       }
     }

@@ -292,14 +292,7 @@ button {
 }
 
 .event-log-entries::-webkit-scrollbar {
-  width: 3px;
-}
-.event-log-entries::-webkit-scrollbar-track {
-  background: transparent;
-}
-.event-log-entries::-webkit-scrollbar-thumb {
-  background: var(--dim);
-  border-radius: 2px;
+  display: none;
 }
 
 .event-entry {
