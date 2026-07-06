@@ -55,6 +55,7 @@ button {
 /* ═══ Custom Titlebar ═══ */
 
 .titlebar {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -63,6 +64,15 @@ button {
   background: var(--surface);
   border-bottom: 1px solid var(--border);
   -webkit-app-region: drag;
+}
+
+/* Refresh button — centered in the titlebar */
+#btn-refresh {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  -webkit-app-region: no-drag;
 }
 
 .titlebar-left {

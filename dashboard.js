@@ -68,9 +68,10 @@
       viewEndMs = tHover + (1 - frac) * newSpan;
       currentSpanMs = newSpan;
       isLive = false;
-      $('btn-live').classList.remove('active');
-      
+
       applyFilter();
+      updateStats();
+      updateEventLog();
       render();
     });
 
@@ -95,9 +96,10 @@
         viewStartMs += shiftMs;
         viewEndMs += shiftMs;
         isLive = false;
-        $('btn-live').classList.remove('active');
-        
+
         applyFilter();
+        updateStats();
+        updateEventLog();
         render();
       }
     });
@@ -196,19 +198,10 @@
         document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         applyFilter();
+        updateStats();
+        updateEventLog();
         render();
       });
-    });
-
-    // Live button
-    $('btn-live').addEventListener('click', () => {
-      isLive = true;
-      // Default to 24H when clicking live if no other active
-      currentSpanMs = 86400 * 1000;
-      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-      $('btn-live').classList.add('active');
-      applyFilter();
-      render();
     });
 
     // IPC: receive full data when window opens
@@ -615,15 +608,7 @@
         ctx.stroke();
         ctx.setLineDash([]);
 
-        // Duration label
-        const durationStr = formatDuration(gapDurationMs);
-        ctx.save();
-        ctx.fillStyle = '#ffffff';
-        ctx.font = '9px "Share Tech Mono", monospace';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(durationStr, gapX + GAP_SEPARATOR_W / 2, pY + pH - 15);
-        ctx.restore();
+        // Duration shown on hover only (see hover tooltip below)
       }
     }
 
