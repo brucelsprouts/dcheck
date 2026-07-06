@@ -3,7 +3,7 @@
 //  System tray app with embedded ping logger
 // ═══════════════════════════════════════════════════════════
 
-const { app, BrowserWindow, Tray, Menu, ipcMain, nativeImage, screen } = require('electron');
+const { app, BrowserWindow, Tray, Menu, ipcMain, nativeImage, screen, Notification } = require('electron');
 const { exec } = require('child_process');
 const fs = require('fs');
 const path = require('path');
@@ -96,6 +96,15 @@ app.whenReady().then(() => {
 
   // Create tray
   createTray();
+
+  // Notify user that it is running in background (helpful after fresh install)
+  if (Notification.isSupported()) {
+    new Notification({
+      title: 'dcheck is running',
+      body: 'dcheck is monitoring your connection. Click the tray icon to view the dashboard.',
+      icon: path.join(__dirname, 'icons', 'icon16.png')
+    }).show();
+  }
 
   // Start the ping logger
   startLogger();

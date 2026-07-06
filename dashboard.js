@@ -176,10 +176,36 @@
       }
     });
 
+    // Refresh button
+    $('btn-refresh').addEventListener('click', () => {
+      window.dcheck.getHistory(0).then(data => {
+        allData = data;
+        applyFilter();
+        updateStats();
+        updateEventLog();
+        render();
+      });
+    });
+
+    // Time filter preset buttons
+    document.querySelectorAll('.filter-btn[data-range]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const rangeSec = parseInt(btn.dataset.range);
+        isLive = true;
+        currentSpanMs = rangeSec === 0 ? 30 * 24 * 3600 * 1000 : rangeSec * 1000;
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        applyFilter();
+        render();
+      });
+    });
+
     // Live button
     $('btn-live').addEventListener('click', () => {
       isLive = true;
+      // Default to 24H when clicking live if no other active
       currentSpanMs = 86400 * 1000;
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
       $('btn-live').classList.add('active');
       applyFilter();
       render();
@@ -233,10 +259,29 @@
       viewStartMs = viewEndMs - currentSpanMs;
     }
 
-    filteredData = allData.filter(d => {
-      const t = parseTS(d.ts);
-      return t >= viewStartMs && t <= viewEndMs;
-    });
+    let minIdx = -1;
+    let maxIdx = -1;
+    
+    for (let i = 0; i < allData.length; i++) {
+      const t = parseTS(allData[i].ts);
+      if (t >= viewStartMs && minIdx === -1) minIdx = i;
+      if (t <= viewEndMs) maxIdx = i;
+    }
+    
+    if (minIdx === -1) minIdx = allData.length - 1; 
+    if (maxIdx === -1) maxIdx = 0; 
+
+    // ALWAYS ensure at least 1 point before and 1 point after bounds to preserve context
+    minIdx = Math.max(0, minIdx - 1);
+    maxIdx = Math.min(allData.length - 1, maxIdx + 1);
+    
+    if (minIdx > maxIdx) {
+      let tmp = minIdx;
+      minIdx = maxIdx;
+      maxIdx = tmp;
+    }
+
+    filteredData = allData.slice(minIdx, maxIdx + 1);
   }
 
 
@@ -660,7 +705,41 @@
 
     // ── Hover tooltip ──
     if (hoverX >= pX && hoverX <= pX + pW) {
-      drawHoverTooltip(pX, pY, pW, pH, yMax, mapX, mapY);
+      // Check if hovering over a gap separator
+      let inGap = false;
+      if (segments && segments.length > 1) {
+        for (let s = 0; s < segments.length - 1; s++) {
+          const seg = segments[s];
+          const gapX = seg.xStart + seg.xWidth;
+          if (hoverX >= gapX && hoverX <= gapX + 14) {
+            inGap = true;
+            const nextSeg = segments[s + 1];
+            const gapDurationMs = nextSeg.startMs - seg.endMs;
+            
+            // Draw gap tooltip
+            ctx.save();
+            const durStr = formatDuration(gapDurationMs);
+            const boxW = ctx.measureText(durStr).width + 16;
+            ctx.fillStyle = 'rgba(17, 17, 17, 0.95)';
+            ctx.beginPath();
+            ctx.roundRect(hoverX - boxW/2, pY + pH/2 - 12, boxW, 24, 3);
+            ctx.fill();
+            ctx.strokeStyle = '#444444';
+            ctx.stroke();
+            
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '10px "Share Tech Mono", monospace';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(durStr, hoverX, pY + pH/2);
+            ctx.restore();
+            break;
+          }
+        }
+      }
+      if (!inGap) {
+        drawHoverTooltip(pX, pY, pW, pH, yMax, mapX, mapY);
+      }
     }
   }
 
