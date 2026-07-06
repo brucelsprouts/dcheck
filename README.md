@@ -6,6 +6,14 @@ I moved back home from uni and the wifi was really bad and kept disconnecting, s
 
 ---
 
+## 🚀 Download & Install
+
+You don't need to build it yourself! Just download the pre-compiled installer and run it:
+
+👉 **[Download dcheck_setup.exe](https://github.com/brucelsprouts/dcheck/raw/main/release/dcheck_setup.exe)**
+
+---
+
 ## Features
 
 - **System Tray Native**: Runs silently in the background. Left-click the tray icon to open the dashboard.
