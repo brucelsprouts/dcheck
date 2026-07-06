@@ -55,7 +55,6 @@ button {
 /* ═══ Custom Titlebar ═══ */
 
 .titlebar {
-  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -64,15 +63,6 @@ button {
   background: var(--surface);
   border-bottom: 1px solid var(--border);
   -webkit-app-region: drag;
-}
-
-/* Refresh button — centered in the titlebar */
-#btn-refresh {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  -webkit-app-region: no-drag;
 }
 
 .titlebar-left {
@@ -145,6 +135,7 @@ button {
   align-items: center;
   justify-content: center;
   font-size: 12px;
+  line-height: 1;
   color: var(--muted);
   border-radius: 2px;
   transition: background 0.15s ease, color 0.15s ease;
@@ -299,10 +290,14 @@ button {
   flex: 1;
   overflow-y: auto;
   padding: 4px 12px;
+  scrollbar-width: none;      /* Firefox */
+  -ms-overflow-style: none;   /* legacy Edge/IE */
 }
 
 .event-log-entries::-webkit-scrollbar {
-  display: none;
+  width: 0;
+  height: 0;
+  display: none;              /* Chromium/WebKit */
 }
 
 .event-entry {
